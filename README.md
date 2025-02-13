@@ -1,3 +1,23 @@
+# Steps to Run
+
+1. Set AUTH_TOKENS_PATH environment variable:
+
+```
+export AUTH_TOKENS_PATH=path/to/authTokens.json
+```
+
+2. Check if the environment variable was set:
+
+```
+echo $AUTH_TOKENS_PATH
+```
+
+3. Run:
+
+```
+go run cmd/adapter/main.go
+```
+
 # SGNL Adapter Template
 
 The SGNL Adapter Template is the starting point for creating a new SGNL Adapter.
@@ -63,7 +83,7 @@ Once this file is created, set the `AUTH_TOKENS_PATH` environment variable to th
 
 1. Modify the adapter implementation in package `pkg/adapter` to query your datasource. All the code that must be modified is identified with `SCAFFOLDING` comments. More implementation details are discussed in the [Understanding this Template](#3-understanding-this-template) section. For these steps, the code can be left as-is just to get the adapter running.
 
-1. Create a JSON file (for example, `authTokens.json`) that will contain the tokens used to authenticate requests to the adapter. The tokens must be stored in the following format and note down the path of the file. 
+1. Create a JSON file (for example, `authTokens.json`) that will contain the tokens used to authenticate requests to the adapter. The tokens must be stored in the following format and note down the path of the file.
 
    ```
    ["<token1>", "<token2>", ...]
