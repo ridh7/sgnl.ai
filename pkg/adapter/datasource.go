@@ -16,7 +16,6 @@ package adapter
 
 import (
 	"context"
-	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -29,8 +28,11 @@ import (
 
 const (
 	// SCAFFOLDING #11 - pkg/adapter/datasource.go: Update the set of valid entity types this adapter supports.
-	Users  string = "users"
-	Groups string = "groups"
+	// Users  string = "users"
+	// Groups string = "groups"
+
+	// R - Only 'Teams' resource needs to be supported
+	Teams string = "teams"
 )
 
 // Entity contains entity specific information, such as the entity's unique ID attribute and the
@@ -54,7 +56,13 @@ type DatasourceResponse struct {
 	// SCAFFOLDING #13  - pkg/adapter/datasource.go: Add or remove fields in the response as necessary. This is used to unmarshal the response from the SoR.
 
 	// SCAFFOLDING #14 - pkg/adapter/datasource.go: Update `objects` with field name in the SoR response that contains the list of objects.
-	Objects []map[string]any `json:"objects,omitempty"`
+	// Objects []map[string]any `json:"objects,omitempty"`
+
+	Teams  []map[string]interface{} `json:"teams"`
+	More   bool                     `json:"more"`
+	Total  *int                     `json:"total"`
+	Limit  int                      `json:"limit"`
+	Offset int                      `json:"offset"`
 }
 
 var (
@@ -63,11 +71,16 @@ var (
 	// ValidEntityExternalIDs is a map of valid external IDs of entities that can be queried.
 	// The map value is the Entity struct which contains the unique ID attribute.
 	ValidEntityExternalIDs = map[string]Entity{
-		Users: {
-			uniqueIDAttrExternalID: "user_id",
-		},
-		Groups: {
-			uniqueIDAttrExternalID: "group_id",
+		// Users: {
+		// 	uniqueIDAttrExternalID: "user_id",
+		// },
+		// Groups: {
+		// 	uniqueIDAttrExternalID: "group_id",
+		// },
+
+		// R - Only 'Teams' resource needs to be supported
+		Teams: {
+			uniqueIDAttrExternalID: "id",
 		},
 	}
 )
@@ -87,7 +100,11 @@ func (d *Datasource) GetPage(ctx context.Context, request *Request) (*Response, 
 	// SCAFFOLDING #16 - pkg/adapter/datasource.go: Create the SoR API URL
 	// Populate the request with the appropriate path, headers, and query parameters to query the
 	// datasource.
-	url := fmt.Sprintf("%s/api/%s", request.BaseURL, request.EntityExternalID)
+	// url := fmt.Sprintf("%s/api/%s", request.BaseURL, request.EntityExternalID)
+
+	// R - PagerDuty URL does not have the api keyword
+
+	url := fmt.Sprintf("%s/%s", request.BaseURL, request.EntityExternalID)
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
@@ -107,14 +124,30 @@ func (d *Datasource) GetPage(ctx context.Context, request *Request) (*Response, 
 	// Add headers to the request, if any.
 	// req.Header.Add("Accept", "application/json")
 
-	if request.Token == "" {
-		// Basic Authentication
-		auth := request.Username + ":" + request.Password
-		req.Header.Add("Authorization", "Basic "+base64.StdEncoding.EncodeToString([]byte(auth)))
-	} else {
-		// Auth Token for Bearer or OAuth2.0 Client Credentials flow
-		req.Header.Add("Authorization", request.Token)
+	// R - Add PagerDuty API-specific headers
+
+	req.Header.Add("Accept", "application/vnd.pagerduty+json;version=2")
+	req.Header.Add("Content-Type", "application/json")
+	req.Header.Add("Authorization", request.Token)
+
+	// R - Remove basic authentication since it is not needed; token authentication is sufficient
+
+	// if request.Token == "" {
+	// 	// Basic Authentication
+	// 	auth := request.Username + ":" + request.Password
+	// 	req.Header.Add("Authorization", "Basic "+base64.StdEncoding.EncodeToString([]byte(auth)))
+	// } else {
+	// 	// Auth Token for Bearer or OAuth2.0 Client Credentials flow
+	// 	req.Header.Add("Authorization", request.Token)
+	// }
+
+	// R - Add pagination logic
+	q := req.URL.Query()
+	q.Add("limit", fmt.Sprintf("%d", request.PageSize))
+	if request.Cursor != "" {
+		q.Add("offset", request.Cursor)
 	}
+	req.URL.RawQuery = q.Encode()
 
 	res, err := d.Client.Do(req)
 	if err != nil {
@@ -171,7 +204,16 @@ func ParseResponse(body []byte) (objects []map[string]any, nextCursor string, er
 
 	// SCAFFOLDING #19 - pkg/adapter/datasource.go: Populate next page information (called cursor in SGNL adapters).
 	// Populate nextCursor with the cursor returned from the datasource, if present.
-	nextCursor = ""
+	// nextCursor = ""
 
-	return data.Objects, nextCursor, nil
+	// R - Handle pagination
+
+	nextCursor = ""
+	if data.More {
+		// Calculate next offset by adding current offset and limit
+		nextOffset := data.Offset + data.Limit
+		nextCursor = fmt.Sprintf("%d", nextOffset)
+	}
+
+	return data.Teams, nextCursor, nil
 }

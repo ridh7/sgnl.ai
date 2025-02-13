@@ -26,19 +26,27 @@ type Config struct {
 	// Every field MUST have a `json` tag.
 
 	// Example config field.
-	APIVersion string `json:"apiVersion,omitempty"`
+	// APIVersion string `json:"apiVersion,omitempty"`
+
+	// R - Removed APIVersion since PagerDuty does not need it
 }
 
 // ValidateConfig validates that a Config received in a GetPage call is valid.
 func (c *Config) Validate(_ context.Context) error {
 	// SCAFFOLDING #4 - pkg/adapter/config.go: Validate fields passed in Adapter config.
 	// Update the checks below to validate the fields in Config.
-	switch {
-	case c == nil:
+	// switch {
+	// case c == nil:
+	// 	return errors.New("request contains no config")
+	// case c.APIVersion == "":
+	// 	return errors.New("apiVersion is not set")
+	// default:
+	// 	return nil
+	// }
+
+	// R - Adding a check if config exists
+	if c == nil {
 		return errors.New("request contains no config")
-	case c.APIVersion == "":
-		return errors.New("apiVersion is not set")
-	default:
-		return nil
 	}
+	return nil
 }

@@ -68,13 +68,15 @@ func (a *Adapter) RequestPageFromDatasource(
 	req := &Request{
 		BaseURL: request.Address,
 
+		// R - Basic Auth is not needed
+
 		// Basic Auth
-		Username: request.Auth.Basic.Username,
-		Password: request.Auth.Basic.Password,
+		// Username: request.Auth.Basic.Username,
+		// Password: request.Auth.Basic.Password,
 
 		// API Key or OAuth2 Token
-		Token:            request.Auth.HTTPAuthorization,
-		
+		Token: request.Auth.HTTPAuthorization,
+
 		PageSize:         request.PageSize,
 		EntityExternalID: request.Entity.ExternalId,
 		Cursor:           request.Cursor,

@@ -39,9 +39,18 @@ func (a *Adapter) ValidateGetPageRequest(ctx context.Context, request *framework
 	}
 
 	// SCAFFOLDING #8 - pkg/adapter/validation.go: Modify this validation to match the authn mechanism(s) supported by the SoR.
-	if request.Auth == nil || request.Auth.Basic == nil {
+	// if request.Auth == nil || request.Auth.Basic == nil {
+	// 	return &framework.Error{
+	// 		Message: "Provided datasource auth is missing required basic credentials.",
+	// 		Code:    api_adapter_v1.ErrorCode_ERROR_CODE_INVALID_DATASOURCE_CONFIG,
+	// 	}
+	// }
+
+	// R - Validate token instead of basic auth
+
+	if request.Auth == nil || request.Auth.HTTPAuthorization == "" {
 		return &framework.Error{
-			Message: "Provided datasource auth is missing required basic credentials.",
+			Message: "PagerDuty auth is missing required token.",
 			Code:    api_adapter_v1.ErrorCode_ERROR_CODE_INVALID_DATASOURCE_CONFIG,
 		}
 	}
@@ -86,12 +95,15 @@ func (a *Adapter) ValidateGetPageRequest(ctx context.Context, request *framework
 	// If the datasource doesn't support sorting results by unique ID
 	// attribute for the requested entity, check instead that Ordered is set to
 	// false.
-	if !request.Ordered {
-		return &framework.Error{
-			Message: "Ordered must be set to true.",
-			Code:    api_adapter_v1.ErrorCode_ERROR_CODE_INVALID_ENTITY_CONFIG,
-		}
-	}
+
+	// R - Removed ordered check since PagerDuty supports ordering by default + no mention of ordering being a requirement in the problem statement
+
+	// if !request.Ordered {
+	// 	return &framework.Error{
+	// 		Message: "Ordered must be set to true.",
+	// 		Code:    api_adapter_v1.ErrorCode_ERROR_CODE_INVALID_ENTITY_CONFIG,
+	// 	}
+	// }
 
 	if request.PageSize > MaxPageSize {
 		return &framework.Error{

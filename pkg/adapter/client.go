@@ -37,11 +37,13 @@ type Request struct {
 	// BaseURL is the Base URL of the datasource to query.
 	BaseURL string
 
+	// R - Removed Username and Password because PagerDuty uses only Token
+
 	// Username is the username to use to authenticate with the datasource.
-	Username string
+	// Username string
 
 	// Password is the password to use to authenticate with the datasource.
-	Password string
+	// Password string
 
 	// Token is the Authorization token to use to authentication with the datasource.
 	Token string
